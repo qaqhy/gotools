@@ -53,13 +53,13 @@ func NewResourcesSpeedLimiter(resources []interface{}, frequency string, alg Alg
 	if err != nil {
 		logutil.Error.Fatalf("frequency: %s; err: %s", frequency, err.Error())
 	}
-	if len(strList) >= 1 {
+	if len(strList) > 1 {
 		burst, err = strconv.Atoi(strList[1])
 		if err != nil {
 			logutil.Error.Fatalf("frequency: %s; err: %s", frequency, err.Error())
 		}
 	}
-	if len(strList) >= 2 {
+	if len(strList) > 2 {
 		num, err = strconv.Atoi(strList[2])
 		if err != nil {
 			logutil.Error.Fatalf("frequency: %s; err: %s", frequency, err.Error())
