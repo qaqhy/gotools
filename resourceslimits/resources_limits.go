@@ -27,29 +27,30 @@ type ResourceLimiter struct {
 
 type ResourcesSpeedLimiter struct {
 	Resources []ResourceLimiter
-	Pointer   int // 资源数据指针
-	Len       int // 资源数量len(Resources)
-	limit     int // 允许每秒取多少资源
-	burst     int // 缓存最大可存多少资源
-	num       int // 单次取多少资源
-	alg       Alg // 取资源算法
+	Pointer   int     // 资源数据指针
+	Len       int     // 资源数量len(Resources)
+	limit     float64 // 允许每秒取多少资源
+	burst     int     // 缓存最大可存多少资源
+	num       int     // 单次取多少资源
+	alg       Alg     // 取资源算法
 	sync.Mutex
 }
 
 func NewResourcesSpeedLimiter(resources []interface{}, frequency string, alg Alg) *ResourcesSpeedLimiter {
-	// frequency="1,10"      //每秒允许取1个资源，最多缓存10个资源，单次取1个资源
-	// frequency="3"         //每秒允许取3个资源，最多缓存1个资源，单次取1个资源
-	// frequency="3,3"       //每秒允许取3个资源，最多缓存3个资源，单次取1个资源
-	// frequency="10,3,2"    //每秒允许取10个资源，最多缓存3个资源，单次取2个资源
+	// frequency="1,10"      //每秒生产1个资源，最多缓存10个资源，单次取1个资源
+	// frequency="3"         //每秒生产3个资源，最多缓存1个资源，单次取1个资源
+	// frequency="3,3"       //每秒生产3个资源，最多缓存3个资源，单次取1个资源
+	// frequency="10,3,2"    //每秒生产10个资源，最多缓存3个资源，单次取2个资源
+	// frequency="0.1,3,1"    //每秒生产0.1个资源，最多缓存3个资源，单次取1个资源
 	var (
 		err              error
 		strList          = strings.Split(frequency, ",")
-		limit            = 1
+		limit            = float64(1)
 		burst            = 1
 		num              = 1
 		resourcesLimiter []ResourceLimiter
 	)
-	limit, err = strconv.Atoi(strList[0])
+	limit, err = strconv.ParseFloat(strList[0], 64)
 	if err != nil {
 		logutil.Error.Fatalf("frequency: %s; err: %s", frequency, err.Error())
 	}
@@ -70,7 +71,7 @@ func NewResourcesSpeedLimiter(resources []interface{}, frequency string, alg Alg
 			Resource: resource,
 			Lim:      *rate.NewLimiter(rate.Limit(limit), burst)})
 	}
-	logutil.Console.Printf("资源初始化Len：%d, limit: %d, burst: %d", len(resources), limit, burst)
+	logutil.Console.Printf("资源初始化Len：%d, limit: %f, burst: %d", len(resources), limit, burst)
 	return &ResourcesSpeedLimiter{
 		Resources: resourcesLimiter,
 		Pointer:   0,
